@@ -3,7 +3,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { ALL_CATEGORIES, type Category, type Template } from "../core/schema";
-import { incrementUsage, loadTemplates } from "../core/storage";
+import { incrementUsage, loadTemplates, saveTemplates } from "../core/storage";
 import { CategoryTabs } from "./components/CategoryTabs";
 import { Footer } from "./components/Footer";
 import { Header } from "./components/Header";
@@ -19,8 +19,18 @@ export default function IndexPopup() {
   const [toast, setToast] = useState<{ text: string; error?: boolean } | null>(null);
 
   // 加载模板（排序：is_favorite 置顶 → usage_count 降序）
+  // 兜底：如果 storage 为空，自动灌入默认模板（覆盖 onInstalled 未触发场景）
   const refresh = useCallback(async () => {
     const store = await loadTemplates();
+    if (store.templateOrder.length === 0) {
+      const { DEFAULT_TEMPLATES } = await import("../core/defaults");
+      const now = new Date().toISOString();
+      for (const t of DEFAULT_TEMPLATES) {
+        store.templates[t.id] = { ...t, created_at: now, updated_at: now };
+        store.templateOrder.push(t.id);
+      }
+      await saveTemplates(store);
+    }
     const list = store.templateOrder
       .map((id) => store.templates[id])
       .filter(Boolean)
