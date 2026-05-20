@@ -29,6 +29,8 @@ export async function getTemplate(id: string): Promise<Template | undefined> {
 }
 
 // 按 ID 覆盖写入（upsert）
+// 已知约束：read→modify→write，popup 和 options 并发写入可能覆盖。
+// Phase 1 接受乐观锁（last-write-wins），Phase 2 考虑版本号冲突检测。
 export async function saveTemplate(template: Template): Promise<void> {
   const store = await loadTemplates();
   const exists = template.id in store.templates;

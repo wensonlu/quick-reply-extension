@@ -7,7 +7,9 @@ export interface TemplateVariable {
   default?: string;   // 默认值
 }
 
-export type Category = '售前' | '售后' | '投诉' | '催评' | '自定义';
+export const ALL_CATEGORIES: Category[] = ['售前', '售后', '投诉', '催评', '自定义'];
+
+export type Category = typeof ALL_CATEGORIES[number];
 
 export interface Template {
   id: string;              // UUID v4
@@ -16,6 +18,7 @@ export interface Template {
   variables: TemplateVariable[];  // 结构化变量定义
   category: Category;      // 分类
   tags: string[];          // 自由标签，≤10 个
+  is_favorite: boolean;    // 是否收藏，默认 false。排序时置顶优先
   usage_count: number;     // 使用次数
   created_at: string;      // ISO 8601 UTC
   updated_at: string;      // ISO 8601 UTC

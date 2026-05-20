@@ -22,10 +22,12 @@ export const TemplateItem: FC<TemplateItemProps> = ({ template, onFill }) => {
     .slice(0, 40);
 
   return (
-    <div className="list-item" onClick={() => onFill(template)}>
+    <div className={`list-item ${template.is_favorite ? "favorite" : ""}`} onClick={() => onFill(template)}>
       <div className="item-category">{icon}</div>
       <div className="item-body">
-        <div className="item-title">{template.trigger}</div>
+        <div className="item-title">
+          {template.is_favorite && <span style={{ color: "#f97316", marginRight: 4 }}>★</span>}
+          {template.trigger}</div>
         <div className="item-preview">{preview}</div>
       </div>
       <span className="item-badge">{template.category}</span>

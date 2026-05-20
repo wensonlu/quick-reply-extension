@@ -2,7 +2,7 @@
 // 组件树：Header → SearchBar → CategoryTabs → TemplateList → Footer → Toast
 
 import { useCallback, useEffect, useState } from "react";
-import type { Category, Template } from "../core/schema";
+import { ALL_CATEGORIES, type Category, type Template } from "../core/schema";
 import { incrementUsage, loadTemplates } from "../core/storage";
 import { CategoryTabs } from "./components/CategoryTabs";
 import { Footer } from "./components/Footer";
@@ -12,21 +12,22 @@ import { TemplateList } from "./components/TemplateList";
 import { Toast } from "./components/Toast";
 import "./style.css";
 
-const ALL_CATEGORIES: Category[] = ["售前", "售后", "投诉", "催评", "自定义"];
-
 export default function IndexPopup() {
   const [templates, setTemplates] = useState<Template[]>([]);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState<Category | null>(null);
   const [toast, setToast] = useState<{ text: string; error?: boolean } | null>(null);
 
-  // 加载模板
+  // 加载模板（排序：is_favorite 置顶 → usage_count 降序）
   const refresh = useCallback(async () => {
     const store = await loadTemplates();
     const list = store.templateOrder
       .map((id) => store.templates[id])
       .filter(Boolean)
-      .sort((a, b) => b.usage_count - a.usage_count);
+      .sort((a, b) => {
+        if (a.is_favorite !== b.is_favorite) return a.is_favorite ? -1 : 1;
+        return b.usage_count - a.usage_count;
+      });
     setTemplates(list);
   }, []);
 
