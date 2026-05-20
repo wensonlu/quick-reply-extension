@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <defs>
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#3b82f6"/>
+      <stop offset="100%" stop-color="#2563eb"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Rounded square background -->
+  <rect x="4" y="4" width="120" height="120" rx="26" fill="url(#bgGrad)"/>
+
+  <!-- Simplified lightning bolt -->
+  <path d="
+    M 52 16
+    L 32 52
+    L 46 52
+    L 38 76
+    L 76 44
+    L 62 44
+    L 72 16
+    Z
+  " fill="#ffffff"/>
+
+  <!-- Orange accent: small dot at top-right -->
+  <circle cx="100" cy="20" r="7" fill="#f97316"/>
+
+  <!-- Orange subtle glow on bolt -->
+  <circle cx="104" cy="18" r="10" fill="#f97316" opacity="0.15"/>
+</svg>
