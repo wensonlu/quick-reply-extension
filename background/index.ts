@@ -64,62 +64,57 @@ function injectAndFill(template: Template): {
   success: boolean;
   error?: string;
 } {
-  // 变量替换：有 defaultValue 的替换，无默认值的保留占位符
-  function replaceVariables(content: string): string {
-    let result = content;
+  try {
+    // 变量替换：有 defaultValue 的替换，无默认值的保留占位符
+    let text = template.content;
     for (const v of template.variables) {
-      const placeholder = `{{${v.name}}}`;
       if (v.default) {
-        result = result.replaceAll(placeholder, v.default);
+        text = text.replaceAll(`{{${v.name}}}`, v.default);
       }
     }
-    return result;
-  }
 
-  // 定位目标输入框
-  function findTargetElement(): HTMLElement | null {
+    // 定位目标输入框
     const active = document.activeElement as HTMLElement | null;
+    let target: HTMLElement | null = null;
+
     if (
       active &&
       (active instanceof HTMLInputElement ||
         active instanceof HTMLTextAreaElement ||
-        active.isContentEditable)
+        (active as HTMLElement).isContentEditable)
     ) {
-      return active;
+      target = active;
+    } else {
+      const inputs = document.querySelectorAll<HTMLElement>(
+        "input:not([type=hidden]), textarea, [contenteditable=true]"
+      );
+      for (const el of inputs) {
+        if (el.offsetParent !== null) {
+          target = el;
+          break;
+        }
+      }
     }
-    const inputs = document.querySelectorAll<HTMLElement>(
-      "input:not([type=hidden]), textarea, [contenteditable=true]"
-    );
-    for (const el of inputs) {
-      if (el.offsetParent !== null) return el;
-    }
-    return null;
-  }
 
-  // 填充
-  function fillToElement(el: HTMLElement, text: string): boolean {
-    if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) {
-      el.value = text;
-      el.dispatchEvent(new Event("input", { bubbles: true }));
-      el.dispatchEvent(new Event("change", { bubbles: true }));
-      return true;
-    }
-    if (document.queryCommandSupported("insertText")) {
-      el.focus();
-      document.execCommand("insertText", false, text);
-      return true;
-    }
-    if (el.isContentEditable) {
-      el.textContent = text;
-      el.dispatchEvent(new Event("input", { bubbles: true }));
-      return true;
-    }
-    return false;
-  }
+    if (!target) return { success: false, error: "未找到输入框" };
 
-  const target = findTargetElement();
-  if (!target) return { success: false, error: "未找到输入框" };
-  const text = replaceVariables(template.content);
-  const ok = fillToElement(target, text);
-  return { success: ok, error: ok ? undefined : "填充失败" };
+    // 填充：标准表单元素
+    if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) {
+      target.value = text;
+      target.dispatchEvent(new Event("input", { bubbles: true }));
+      target.dispatchEvent(new Event("change", { bubbles: true }));
+      return { success: true };
+    }
+
+    // 填充：contenteditable / 富文本
+    if (target.isContentEditable) {
+      target.textContent = text;
+      target.dispatchEvent(new Event("input", { bubbles: true }));
+      return { success: true };
+    }
+
+    return { success: false, error: "不支持的输入框类型" };
+  } catch (err: unknown) {
+    return { success: false, error: `填充异常: ${err instanceof Error ? err.message : String(err)}` };
+  }
 }
